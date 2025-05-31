@@ -6,22 +6,35 @@ const cart = [
 
 function calculateTotal(cartItems) {
   let total = 0;
-  for (let i = 0; i <= cartItems.length; i++) { // Bug: <= should be <
-      total += cartItems[i].price; // Bug: cartItems[i] is undefined on the last iteration
+  for (let i = 0; i < cartItems.length; i++) { 
+    // Fix: Changed from i <= cartItems.length to i < cartItems.length 
+    // because the last index is cartItems.length - 1. 
+    total += cartItems[i].price;
   }
   return total;
 }
 
 function applyDiscount(total, discountRate) {
-  return total - total * discountRate; // Bug: Missing validation for discountRate
+  // Fix: Validate that discountRate is a number between 0 and 1
+  if (typeof discountRate !== "number" || discountRate < 0 || discountRate > 1) {
+    console.warn("Invalid discount rate. No discount applied.");
+    return total;
+  }
+  return total - total * discountRate;
 }
 
 function generateReceipt(cartItems, total) {
+  // Fix: Validate total is a number to avoid NaN
+  if (typeof total !== "number" || isNaN(total)) {
+    console.error("Invalid total amount");
+    total = 0;
+  }
+
   let receipt = "Items:\n";
   cartItems.forEach(item => {
-      receipt += `${item.name}: $${item.price}\n`;
+    receipt += `${item.name}: $${item.price}\n`;
   });
-  receipt += `Total: $${total.toFixed(2)}`; // Bug: total may not be a number
+  receipt += `Total: $${total.toFixed(2)}`;
   return receipt;
 }
 
@@ -31,5 +44,18 @@ const total = calculateTotal(cart);
 const discountedTotal = applyDiscount(total, 0.2); // 20% discount
 const receipt = generateReceipt(cart, discountedTotal);
 
-document.getElementById("total").textContent = `Total: $${discountedTotal}`;
-document.getElementById("receipt").textContent = receipt;
+// Ensure DOM elements exist before accessing them
+const totalElement = document.getElementById("total");
+const receiptElement = document.getElementById("receipt");
+
+if (totalElement) {
+  totalElement.textContent = `Total: $${discountedTotal.toFixed(2)}`;
+} else {
+  console.warn("Element with ID 'total' not found.");
+}
+
+if (receiptElement) {
+  receiptElement.textContent = receipt;
+} else {
+  console.warn("Element with ID 'receipt' not found.");
+}
